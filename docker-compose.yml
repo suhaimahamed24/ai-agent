@@ -1,0 +1,22 @@
+services:
+  ollama:
+    build:
+      context: .
+      dockerfile: ollama.Dockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  web-agent:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_URL=http://ollama:11434/api/generate
+      - OLLAMA_MODEL=gemma3:1b
+
+volumes:
+  ollama-data:
