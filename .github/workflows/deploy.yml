@@ -1,0 +1,60 @@
+name: Build and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: smagentregistry.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and Push Ollama Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ollama.Dockerfile
+          push: true
+          tags: smagentregistry.azurecr.io/ollama-custom:latest
+
+      - name: Build and Push Web Agent Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: smagentregistry.azurecr.io/web-agent:latest
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Ollama to Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}
+          acrName: smagentregistry
+          containerAppName: ollama
+          resourceGroup: ai-agent-rg
+          imageToDeploy: smagentregistry.azurecr.io/ollama-custom:latest
+
+      - name: Deploy Web Agent to Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}
+          acrName: smagentregistry
+          containerAppName: web-agent
+          resourceGroup: ai-agent-rg
+          imageToDeploy: smagentregistry.azurecr.io/web-agent:latest
