@@ -48,7 +48,7 @@ jobs:
           appSourcePath: ${{ github.workspace }}
           acrName: smagentregistry
           containerAppName: ollama
-          resourceGroup: ai-agent-rg
+          resourceGroup: agent-rg
           imageToDeploy: smagentregistry.azurecr.io/ollama-custom:latest
 
       - name: Deploy Web Agent to Container Apps
@@ -57,5 +57,5 @@ jobs:
           appSourcePath: ${{ github.workspace }}
           acrName: smagentregistry
           containerAppName: web-agent
-          resourceGroup: ai-agent-rg
+          resourceGroup: agent-rg
           imageToDeploy: smagentregistry.azurecr.io/web-agent:latest
